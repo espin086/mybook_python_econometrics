@@ -62,6 +62,7 @@ class EDA():
         plt.figure()
         sns_plot = sns.pairplot(numerical)
         sns_plot.savefig("scatter_matrix_plot.png".format())
+        plt.close()
 
     def _box_plot(self, var_x):
         """
@@ -71,6 +72,7 @@ class EDA():
         plt.figure()
         sns_plot = sns.boxplot(x=var_x, y=self.y, data=self.df).get_figure()
         sns_plot.savefig("box_plot_{0}_{1}.png".format(var_x, self.y_string))
+        plt.close()
 
     def _scatter_plot(self, var_x):
         """
@@ -106,3 +108,38 @@ class EDA():
 
 
 if __name__ == "__main__":
+    def rename_cols_and_save(xls_name):
+        df = pd.read_excel("../data/{0}.xls".format(xls_name), index_col=None, header=None)
+        if xls_name == 'hprice1':
+            names_dict = {0:'price',
+                        1:'assess',
+                        2:'bdrms',
+                        3:'lotsize',
+                        4:'sqrft',
+                        5:'colonial',
+                        6:'lprice',
+                        7:'lassess',
+                        8:'llotsize',
+                        9:'lsqrft',
+                        }
+        elif xls_name == 'saving':
+            names_dict = {0:'sav',
+                        1:'inc',
+                        2:'size',
+                        3:'edu',
+                        4:'age',
+                        5:'black',
+                        6:'cons',
+                        }
+
+        df.rename(columns = names_dict, inplace = True)
+        df.to_csv("../data/{0}.csv".format(xls_name), index=False)
+        return df
+
+    df = rename_cols_and_save(xls_name='hprice1')
+
+    df.colonial = df.colonial.astype('category')
+
+
+    eda = EDA(df=df, y='price')
+    eda.run()
