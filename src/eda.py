@@ -1,5 +1,5 @@
 """
-Produces exploratory analysis of a dataframe
+Produces exploratory analysis of a dataframe, saves output to new folder
 
 """
 
@@ -7,6 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 
 
 class EDA():
@@ -14,6 +15,9 @@ class EDA():
     Class that runs exploratory analysis
 
     """
+
+    if not os.path.exists('plots'):
+        os.makedirs('plots')
 
     def __init__(self, df, y):
         """
@@ -41,7 +45,7 @@ class EDA():
         """
         plt.figure()
         sns_plot = sns.distplot(df[var], color='b').get_figure()
-        sns_plot.savefig("dist_plot_{0}.png".format(var))
+        sns_plot.savefig("plots/dist_plot_{0}.png".format(var))
         return sns_plot
 
     def variation(self):
@@ -61,7 +65,7 @@ class EDA():
         numerical = self.df.select_dtypes(include=np.number)
         plt.figure()
         sns_plot = sns.pairplot(numerical)
-        sns_plot.savefig("scatter_matrix_plot.png".format())
+        sns_plot.savefig("plots/scatter_matrix_plot.png".format())
         plt.close()
 
     def _box_plot(self, var_x):
@@ -71,7 +75,8 @@ class EDA():
         """
         plt.figure()
         sns_plot = sns.boxplot(x=var_x, y=self.y, data=self.df).get_figure()
-        sns_plot.savefig("box_plot_{0}_{1}.png".format(var_x, self.y_string))
+
+        sns_plot.savefig("plots/box_plot_{0}_{1}.png".format(var_x, self.y_string))
         plt.close()
 
     def _scatter_plot(self, var_x):
@@ -81,7 +86,7 @@ class EDA():
         """
         sns_plot = sns.lmplot(x=var_x, y=self.y_string, data=self.df)
         sns_plot.savefig(
-            "correlation_{0}_{1}.png".format(var_x, self.y_string))
+            "plots/correlation_{0}_{1}.png".format(var_x, self.y_string))
 
     def covariation(self):
         """
@@ -108,38 +113,25 @@ class EDA():
 
 
 if __name__ == "__main__":
-    def rename_cols_and_save(xls_name):
-        df = pd.read_excel("../data/{0}.xls".format(xls_name), index_col=None, header=None)
-        if xls_name == 'hprice1':
-            names_dict = {0:'price',
-                        1:'assess',
-                        2:'bdrms',
-                        3:'lotsize',
-                        4:'sqrft',
-                        5:'colonial',
-                        6:'lprice',
-                        7:'lassess',
-                        8:'llotsize',
-                        9:'lsqrft',
-                        }
-        elif xls_name == 'saving':
-            names_dict = {0:'sav',
-                        1:'inc',
-                        2:'size',
-                        3:'edu',
-                        4:'age',
-                        5:'black',
-                        6:'cons',
-                        }
 
-        df.rename(columns = names_dict, inplace = True)
-        df.to_csv("../data/{0}.csv".format(xls_name), index=False)
-        return df
+    df = pd.read_csv("udemy_development.csv", index_col=None, thousands=',')
 
-    df = rename_cols_and_save(xls_name='hprice1')
+    df['Course ID'] = df['Course ID'].astype('str')
 
-    df.colonial = df.colonial.astype('category')
+    # #Run analysis for each of these categories in development and write a blog post about them
+    # df = df.loc[df['Sub Category'].isin(['Data Science','Programming Languages', 'Web Development'])]
+
+    #best development courses on Udemy
+    df = df.loc[df['Sub Category'].isin(['Web Development'])]
+
+    for item in ['Sub Category', 'Category']:
+        df[item] = df[item].astype('category')
 
 
-    eda = EDA(df=df, y='price')
+    eda = EDA(df=df, y='Avg Rating')
     eda.run()
+
+    eda = EDA(df=df, y='Enrollment')
+    eda.run()
+
+    print(eda.inspect()['describe'])
